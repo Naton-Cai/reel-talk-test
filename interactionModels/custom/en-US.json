@@ -38,134 +38,31 @@
         {
           "slots": [
             {
-              "name": "Genre",
-              "type": "GENRE"
+              "name": "MovieQuery",
+              "type": "AMAZON.SearchQuery"
             }
           ],
-          "name": "GetMovieInfoIntent",
+          "name": "GetMovieRecommendationIntent",
           "samples": [
-            "{Genre}",
-            "Find me a {Genre} movie",
-            "Show me {Genre} movies",
-            "What {Genre} movies are playing",
-            "Give me some {Genre} movie options",
-            "Recommend a {Genre} movie",
-            "Can you suggest a {Genre} movie",
-            "I want to watch a {Genre} movie",
-            "Are there any good {Genre} movies right now",
-            "What are the best {Genre} movies out",
-            "Help me find a {Genre} movie"
-          ]
-        },
-        {
-          "slots": [
-            {
-              "name": "MovieTitle",
-              "type": "AMAZON.Movie"
-            },
-            {
-              "name": "Selection",
-              "type": "AMAZON.Ordinal"
-            }
-          ],
-          "name": "ChooseMovieIntent",
-          "samples": [
-            "{MovieTitle}",
-            "I want {MovieTitle}",
-            "choose {MovieTitle}",
-            "pick {MovieTitle}",
-            "{Selection}",
-            "the {Selection} one",
-            "option {Selection}",
-            "number {Selection}"
+            "suprise me",
+            "what {MovieQuery} movies are out",
+            "show me {MovieQuery} movies",
+            "what {MovieQuery} movies are playing",
+            "what movies are playing nearby",
+            "what should I see this weekend",
+            "is {MovieQuery} worth watching",
+            "tell me about {MovieQuery}",
+            "I want to watch {MovieQuery} today",
+            "when is {MovieQuery} playing near me",
+            "what showtimes are available for {MovieQuery}",
+            "are there any {MovieQuery} movies nearby",
+            "find me movies like {MovieQuery}",
+            "what movies should I see for {MovieQuery}"
           ]
         }
       ],
-      "types": [
-        {
-          "values": [
-            {
-              "name": {
-                "synonyms": [
-                  "mythical",
-                  "magic",
-                  "dragons",
-                  "medieval",
-                  "magical"
-                ],
-                "value": "fantasy"
-              }
-            },
-            {
-              "name": {
-                "synonyms": [
-                  "sci-fi",
-                  "futuristic",
-                  "aliens",
-                  "space"
-                ],
-                "value": "sci fi"
-              }
-            },
-            {
-              "name": {
-                "synonyms": [
-                  "crime",
-                  "tense",
-                  "suspense"
-                ],
-                "value": "thriller"
-              }
-            },
-            {
-              "name": {
-                "synonyms": [
-                  "emotional",
-                  "serious",
-                  "dramatic"
-                ],
-                "value": "drama"
-              }
-            },
-            {
-              "name": {
-                "synonyms": [
-                  "love",
-                  "romantic"
-                ],
-                "value": "romance"
-              }
-            },
-            {
-              "name": {
-                "synonyms": [
-                  "funny"
-                ],
-                "value": "comedy"
-              }
-            },
-            {
-              "name": {
-                "synonyms": [
-                  "spooky",
-                  "scary"
-                ],
-                "value": "horror"
-              }
-            },
-            {
-              "name": {
-                "synonyms": [
-                  "adventure"
-                ],
-                "value": "action"
-              }
-            }
-          ],
-          "name": "GENRE"
-        }
-      ],
-      "invocationName": "reel talk"
+      "types": [],
+      "invocationName": "movie guru"
     }
   }
 }

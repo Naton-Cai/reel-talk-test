@@ -1,295 +1,204 @@
-/* *
- * This sample demonstrates handling intents from an Alexa skill using the Alexa Skills Kit SDK (v2).
- * Please visit https://alexa.design/cookbook for additional examples on implementing slots, dialog management,
- * session persistence, api calls, and more.
- * */
 const Alexa = require('ask-sdk-core');
 
-const LaunchRequestHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
-    },
-    handle(handlerInput) {
-        const speakOutput = 'Welcome to Reel Talk. You can ask me to find a certain genre of movie';
-        const repromptText = 'Try saying, find me an action movie.';
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .reprompt(speakOutput)
-            .getResponse();
-    }
+const movies = {
+    'project hail mary': "Project Hail Mary is incredible. Ryan Gosling wakes up alone in space with no memory of how he got there. Funny, emotional, and smart. 94% on Rotten Tomatoes. Just go see it.",
+    'the mummy': "Lee Cronin's Mummy is straight up horror — not the fun Brendan Fraser kind. Rated R, actually scary. Good pick if that's what you're after.",
+    'mario': "The Super Mario Galaxy Movie is out now, rated PG. Great for kids, pretty fun for adults who grew up on the games too.",
+    'super mario': "The Super Mario Galaxy Movie is out now, rated PG. Great for kids, pretty fun for adults who grew up on the games too.",
+    'the super mario galaxy movie': "The Super Mario Galaxy Movie is out now, rated PG. Great for kids, pretty fun for adults who grew up on the games too.",
+    'the drama': "Zendaya and Robert Pattinson in a romantic drama. That casting alone is enough reason to go. Rated R.",
+    'tuscany': "You Me and Tuscany is a light PG-13 rom-com. Nothing crazy but solid if you want something easy to watch.",
+    'you me and tuscany': "You Me and Tuscany is a light PG-13 rom-com. Nothing crazy but solid if you want something easy to watch.",
+    'normal': "Normal is a gritty R-rated action thriller. If you want something intense, this is the one.",
+    'hoppers': "Hoppers is the new Pixar movie, rated PG. You already know how this goes — looks great, will probably make you cry. Works for any age.",
+    'faces of death': "Faces of Death is rated R and not for the faint of heart. Dark and disturbing. You've been warned.",
+    'busboys': "Busboys is an R-rated thriller. Tense and character-driven, worth checking out if you're into that.",
+    'a great awakening': "A Great Awakening is a PG historical drama. Meaningful, solid pick if you want something with some weight to it.",
+    'crime 101': "Crime 101 is an R-rated crime thriller. If you liked stuff like Knives Out or Heat, give it a shot.",
+    'ready or not': "Ready or Not 2 is out now. The original was great so expectations are high. Rated R, horror sequel.",
+    'ready or not 2': "Ready or Not 2 is out now. The original was great so expectations are high. Rated R, horror sequel."
 };
 
-const HelloWorldIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'HelloWorldIntent';
-    },
-    handle(handlerInput) {
-        const speakOutput = 'Hello World!';
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .getResponse();
-    }
+const genres = {
+    horror: ['The Mummy', 'Faces of Death', 'Ready or Not 2'],
+    scifi: ['Project Hail Mary'],
+    action: ['Normal', 'Crime 101', 'Busboys'],
+    romance: ['The Drama', 'You Me and Tuscany'],
+    animation: ['The Super Mario Galaxy Movie', 'Hoppers'],
+    family: ['The Super Mario Galaxy Movie', 'Hoppers', 'A Great Awakening'],
+    drama: ['The Drama', 'A Great Awakening'],
+    thriller: ['Busboys', 'Crime 101', 'Normal']
 };
 
-const movieDB = {
-      action: [
-        { title: "John Wick", time: "6:30 PM", theater: "Regal Hilltop" },
-        { title: "Mad Max", time: "8:00 PM", theater: "AMC Vancouver" },
-        { title: "Mission Impossible", time: "9:15 PM", theater: "Cinemark 23" }
-      ],
-      comedy: [
-        { title: "Barbie", time: "5:45 PM", theater: "AMC Vancouver" },
-        { title: "Free Guy", time: "7:10 PM", theater: "Regal Cascade" }
-      ],
-      horror: [
-        { title: "The Conjuring", time: "9:30 PM", theater: "Cinemark 23" },
-        { title: "Smile", time: "10:15 PM", theater: "AMC Vancouver" }
-      ]
-    };
+const showtimes = ['2:00 PM', '4:45 PM', '7:30 PM', '10:05 PM'];
 
-const GetMovieInfoIntentHandler = {
-  canHandle(handlerInput) {
-    return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-      && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetMovieInfoIntent';
-  },
-
-  handle(handlerInput) {
-    const slots = handlerInput.requestEnvelope.request.intent.slots;
-
-    const genre = slots && slots.Genre && slots.Genre.value;
-
-    if (!genre) {
-      return handlerInput.responseBuilder
-        .speak('What genre of movie would you like? You can say action, comedy, or horror.')
-        .reprompt('Try saying action, comedy, or horror.')
-        .getResponse();
-    }
-
-    let lowerGenre = genre.toLowerCase().trim();
-
-    lowerGenre = lowerGenre
-      .replace(/^(a |an |the |some )/, '')
-      .replace(/ movie$/, '')
-      .replace(/ movies$/, '');
-      
-
-    const movies = movieDB[lowerGenre];
-
-    let speakOutput;
-
-    if (!movies) {
-      speakOutput = `I heard ${genre}, but I don’t have that genre yet. Try action, comedy, or horror.`;
-    } else {
-      const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-    
-      sessionAttributes.lastGenre = lowerGenre;
-      sessionAttributes.movieOptions = movies;
-    
-      handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-    
-      const movieList = movies.map((movie, index) =>
-        `Option ${index + 1}: ${movie.title}<break time="0.5s"/>`
-      ).join(' ');
-    
-      speakOutput = `<speak>Here are some ${lowerGenre} movies: ${movieList}. Which one would you like?</speak>`;
-    }
-
-    return handlerInput.responseBuilder
-      .speak(speakOutput)
-      .reprompt('Which movie would you like? You can say the movie title, or say the first one.')
-      .getResponse();
-  }
-};
-
-function choiceToIndex(choice) {
-  if (!choice) return -1;
-
-  const lower = choice.toLowerCase();
-
-  if (lower.includes('1') || lower.includes('one') || lower.includes('first')) return 0;
-  if (lower.includes('2') || lower.includes('two') || lower.includes('second')) return 1;
-  if (lower.includes('3') || lower.includes('three') || lower.includes('third')) return 2;
-
-  return -1;
+function findGenre(q) {
+    if (/horror|scary|creepy|spooky|frightening/.test(q)) return 'horror';
+    if (/sci.fi|space|science fiction|scifi/.test(q)) return 'scifi';
+    if (/action|intense|adrenaline|fight/.test(q)) return 'action';
+    if (/romance|romantic|love|date night|rom.com|comedy/.test(q)) return 'romance';
+    if (/animated|animation|pixar|cartoon|kids movie/.test(q)) return 'animation';
+    if (/family|kids|children/.test(q)) return 'family';
+    if (/drama|emotional/.test(q)) return 'drama';
+    if (/thriller|suspense|mystery/.test(q)) return 'thriller';
+    return null;
 }
 
-const ChooseMovieIntentHandler = {
-  canHandle(handlerInput) {
-    return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-      && Alexa.getIntentName(handlerInput.requestEnvelope) === 'ChooseMovieIntent';
-  },
-
-  handle(handlerInput) {
-    const slots = handlerInput.requestEnvelope.request.intent.slots;
-    const movieChoice = slots.MovieTitle && slots.MovieTitle.value;
-    const selection = slots.Selection && slots.Selection.value;
-
-    const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-    const movieOptions = sessionAttributes.movieOptions || [];
-
-    if (movieOptions.length === 0) {
-      return handlerInput.responseBuilder
-        .speak('Let’s start with a genre. You can say action, comedy, or horror.')
-        .reprompt('Say a genre like action, comedy, or horror.')
-        .getResponse();
+function findMovie(q) {
+    for (const key of Object.keys(movies)) {
+        if (q.includes(key)) return key;
     }
-    
-    if (!movieChoice && !selection) {
-      return handlerInput.responseBuilder
-        .speak('Which movie would you like? You can say the title, or say option one.')
-        .reprompt('Say the movie title, or say option one.')
-        .getResponse();
+    // fuzzy match — if exact fails, check if all meaningful words from the key appear in query
+    for (const key of Object.keys(movies)) {
+        const words = key.split(' ').filter(w => w.length > 3);
+        if (words.length > 0 && words.every(w => q.includes(w))) return key;
     }
+    return null;
+}
 
-    let selectedMovie;
-
-    if (movieChoice) {
-      const lowerChoice = movieChoice.toLowerCase();
-
-      selectedMovie = movieOptions.find(movie =>
-        movie.title.toLowerCase() === lowerChoice
-      );
-    }
-    
-    if (!selectedMovie) {
-      const index = choiceToIndex(movieChoice || selection);
-      selectedMovie = movieOptions[index];
-    }
-
-    if (!selectedMovie) {
-      return handlerInput.responseBuilder
-        .speak(`I heard ${movieChoice || selection}, but that was not one of the options. Please choose one of the movies listed.`)
-        .reprompt('You can say the movie title, option one, or option two.')
-        .getResponse();
-    }
-
-    return handlerInput.responseBuilder
-      .speak(`${selectedMovie.title} is playing at ${selectedMovie.theater} at ${selectedMovie.time}.`)
-      .getResponse();
-  }
-};
-        
-const HelpIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.HelpIntent';
+const LaunchRequestHandler = {
+    canHandle(h) {
+        return Alexa.getRequestType(h.requestEnvelope) === 'LaunchRequest';
     },
-    handle(handlerInput) {
-        const speakOutput = 'You can say hello to me! How can I help?';
+    handle(h) {
+        return h.responseBuilder
+            .speak("Hey, welcome to Movie Guru. Tell me a genre, a movie title, or just say surprise me.")
+            .reprompt("What kind of movie are you looking for?")
+            .getResponse();
+    }
+};
 
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .reprompt(speakOutput)
+const GetMovieRecommendationIntentHandler = {
+    canHandle(h) {
+        return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(h.requestEnvelope) === 'GetMovieRecommendationIntent';
+    },
+    handle(h) {
+        const raw = Alexa.getSlotValue(h.requestEnvelope, 'MovieQuery');
+
+        if (!raw || !raw.trim()) {
+            return h.responseBuilder
+                .speak("What are you in the mood for? Give me a genre or a movie title.")
+                .reprompt("Genre or movie title, either works.")
+                .getResponse();
+        }
+
+        const q = raw.toLowerCase();
+
+        // vague request
+        if (/surprise|anything|whatever|don't know|no idea|idk|something good/.test(q)) {
+            return h.responseBuilder
+                .speak("Three good picks right now: Project Hail Mary if you want the best movie in theaters, Hoppers if you want something for everyone, or The Drama if you're feeling a romantic night out.")
+                .reprompt("Want details on any of those?")
+                .getResponse();
+        }
+
+        // showtime request
+        if (/showtime|playing|when is|what time|schedule/.test(q)) {
+            const key = findMovie(q);
+            if (key) {
+                return h.responseBuilder
+                    .speak(`${movies[key].split('.')[0]}. Showtimes today are ${showtimes.join(', ')}.`)
+                    .reprompt("Anything else?")
+                    .getResponse();
+            }
+            return h.responseBuilder
+                .speak("Which movie are you trying to see? Give me a title and I'll pull the times.")
+                .reprompt("Which movie?")
+                .getResponse();
+        }
+
+        // specific movie
+        const key = findMovie(q);
+        if (key) {
+            return h.responseBuilder
+                .speak(movies[key] + " Want the showtimes?")
+                .reprompt("Want showtimes?")
+                .getResponse();
+        }
+
+        // genre
+        const genre = findGenre(q);
+        if (genre) {
+            return h.responseBuilder
+                .speak(`Here's what's playing in ${genre} right now: ${genres[genre].join(', ')}. Want to know more about any of them?`)
+                .reprompt("Want details on any of those?")
+                .getResponse();
+        }
+
+        // nothing matched
+        return h.responseBuilder
+            .speak(`Couldn't find anything for "${raw}". Try a genre like horror or sci-fi, or just name a specific movie.`)
+            .reprompt("What genre or movie are you looking for?")
+            .getResponse();
+    }
+};
+
+const HelpIntentHandler = {
+    canHandle(h) {
+        return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(h.requestEnvelope) === 'AMAZON.HelpIntent';
+    },
+    handle(h) {
+        return h.responseBuilder
+            .speak("Try asking for a genre like horror or sci-fi, or name a specific movie like Project Hail Mary or Hoppers. You can also ask for showtimes.")
+            .reprompt("What can I help you find?")
             .getResponse();
     }
 };
 
 const CancelAndStopIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && (Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.CancelIntent'
-                || Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.StopIntent');
+    canHandle(h) {
+        return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest'
+            && (Alexa.getIntentName(h.requestEnvelope) === 'AMAZON.CancelIntent'
+                || Alexa.getIntentName(h.requestEnvelope) === 'AMAZON.StopIntent');
     },
-    handle(handlerInput) {
-        const speakOutput = 'Goodbye!';
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .getResponse();
+    handle(h) {
+        return h.responseBuilder.speak("Enjoy the movie!").getResponse();
     }
 };
-/* *
- * FallbackIntent triggers when a customer says something that doesn’t map to any intents in your skill
- * It must also be defined in the language model (if the locale supports it)
- * This handler can be safely added but will be ingnored in locales that do not support it yet 
- * */
+
 const FallbackIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.FallbackIntent';
+    canHandle(h) {
+        return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(h.requestEnvelope) === 'AMAZON.FallbackIntent';
     },
-    handle(handlerInput) {
-        const speakOutput = 'Sorry, I don\'t know about that. Please try again.';
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .reprompt(speakOutput)
+    handle(h) {
+        return h.responseBuilder
+            .speak("Didn't catch that. Try a genre or a movie title.")
+            .reprompt("What are you in the mood for?")
             .getResponse();
     }
 };
-/* *
- * SessionEndedRequest notifies that a session was ended. This handler will be triggered when a currently open 
- * session is closed for one of the following reasons: 1) The user says "exit" or "quit". 2) The user does not 
- * respond or says something that does not match an intent defined in your voice model. 3) An error occurs 
- * */
+
 const SessionEndedRequestHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'SessionEndedRequest';
+    canHandle(h) {
+        return Alexa.getRequestType(h.requestEnvelope) === 'SessionEndedRequest';
     },
-    handle(handlerInput) {
-        console.log(`~~~~ Session ended: ${JSON.stringify(handlerInput.requestEnvelope)}`);
-        // Any cleanup logic goes here.
-        return handlerInput.responseBuilder.getResponse(); // notice we send an empty response
+    handle(h) {
+        return h.responseBuilder.getResponse();
     }
 };
-/* *
- * The intent reflector is used for interaction model testing and debugging.
- * It will simply repeat the intent the user said. You can create custom handlers for your intents 
- * by defining them above, then also adding them to the request handler chain below 
- * */
-const IntentReflectorHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest';
-    },
-    handle(handlerInput) {
-        const intentName = Alexa.getIntentName(handlerInput.requestEnvelope);
-        const speakOutput = `You just triggered ${intentName}`;
 
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
-            .getResponse();
-    }
-};
-/**
- * Generic error handling to capture any syntax or routing errors. If you receive an error
- * stating the request handler chain is not found, you have not implemented a handler for
- * the intent being invoked or included it in the skill builder below 
- * */
 const ErrorHandler = {
-    canHandle() {
-        return true;
-    },
-    handle(handlerInput, error) {
-        const speakOutput = 'Sorry, I had trouble doing what you asked. Please try again.';
-        console.log(`~~~~ Error handled: ${JSON.stringify(error)}`);
-
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .reprompt(speakOutput)
+    canHandle() { return true; },
+    handle(h, error) {
+        console.log('Error:', error.message);
+        return h.responseBuilder
+            .speak("Something broke on my end. Try again.")
+            .reprompt("Try a genre or movie title.")
             .getResponse();
     }
 };
 
-/**
- * This handler acts as the entry point for your skill, routing all request and response
- * payloads to the handlers above. Make sure any new handlers or interceptors you've
- * defined are included below. The order matters - they're processed top to bottom 
- * */
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
-        HelloWorldIntentHandler,
-        GetMovieInfoIntentHandler,
-        ChooseMovieIntentHandler,
+        GetMovieRecommendationIntentHandler,
         HelpIntentHandler,
         CancelAndStopIntentHandler,
         FallbackIntentHandler,
-        SessionEndedRequestHandler,
-        IntentReflectorHandler)
-    .addErrorHandlers(
-        ErrorHandler)
-    .withCustomUserAgent('sample/hello-world/v1.2')
+        SessionEndedRequestHandler
+    )
+    .addErrorHandlers(ErrorHandler)
     .lambda();
